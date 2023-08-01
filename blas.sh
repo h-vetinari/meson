@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-# note: base environment needs to have click installed
-
 CONDA_BIN=${BLAS_CONDA:-conda}
 PYTHON_BIN=$(which python)
 BLAS_CLICK_WRAPPER="${PYTHON_BIN} _blas.py"
@@ -36,7 +34,7 @@ function activate_or_delegate()
         $CONDA_BIN activate "$1"
         # interface break here... bash blas.sh test <env> vs. python _blas.py test --env=<env>
         # would be nice to get rid of this, but needs deeper click changes
-        $BLAS_CLICK_WRAPPER test --env="$@"
+        $BLAS_CLICK_WRAPPER test "$@"
         ;;
     *)
         # delegate to python CLI

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import os
 import pathlib
 import re
 import subprocess
-
-import click
 
 # mamba not tested yet
 conda_bin = os.environ.get("BLAS_CONDA", "conda")
@@ -47,7 +46,7 @@ def _is_active(env):
 
 def _do_teardown(env):
     if not _exists(env):
-        click.echo(f"Environment {env} does not exist, skipping...")
+        print(f"Environment {env} does not exist, skipping...")
     else:
         subprocess.call([conda_bin, "env", "remove", "-n", env, "-y"])
 
@@ -57,7 +56,7 @@ def _do_spinup(env, force):
         raise RuntimeError(f"Unknown environment specified: {env}!\n"
                            f"Known environments: {', '.join(env_specs.keys())}")
     if _exists(env) and not force:
-        click.echo(f"Environment {env} exists already, and --force not specified, skipping...")
+        print(f"Environment {env} exists already, and --force not specified, skipping...")
         return
 
     if _exists(env):
@@ -68,60 +67,74 @@ def _do_spinup(env, force):
     subprocess.call([f"{base_bindir}/pip", "install", "-e", "."])
 
 
-@click.group()
-def mygroup(ctx):
-    pass
-
-
 # cannot do this (sanely) from python; use bash
-# def activate(env):
+# def activate(args):
 #     pass
 
 
-@mygroup.command()
-@click.option("--env", default=None)
-def test(env):
-    if env is None:
+def test(args):
+    if args.env is None:
         raise ValueError("Can only run tests when given an environment!")
-    if not _is_active(env):
-        raise ValueError(f"Environment {env} must be activated for testing!")
-    click.echo(f"Running tests in {env}")
+    if not _is_active(args.env):
+        raise ValueError(f"Environment {args.env} must be activated for testing!")
+    print(f"Running tests in {args.env}")
     # point this to respective blas test
     subprocess.call([f"{base_bindir}/python", "run_unittests.py"])
 
 
-@mygroup.command()
-def list():
+def list_envs(args):
     # following `conda list` and `conda env list`
-    click.echo(" ".join(env_specs.keys()))
+    print(" ".join(env_specs.keys()))
 
 
-@mygroup.command()
-@click.option("--env", default=None)
-@click.option("--force", default=False, is_flag=True)
-def spinup(env, force):
-    msg = "all the envs" if env is None else env
-    click.echo(f"Setting up {msg}!")
-    if env is None:
-        for env in env_specs.keys():
-            _do_spinup(env, force)
+def spinup(args):
+    msg = "all the envs" if args.env is None else args.env
+    print(f"Setting up {msg}!")
+    if args.env is None:
+        for e in env_specs.keys():
+            _do_spinup(e, args.force)
     else:
-        _do_spinup(env, force)
+        _do_spinup(args.env, args.force)
 
 
-@mygroup.command()
-@click.option("--env", default=None)
-def teardown(env):
-    msg = "all the envs" if env is None else env
-    click.echo(f"Removing {msg}!")
-    if env is None:
-        for env in env_specs.keys():
-            _do_teardown(env)
+def teardown(args):
+    msg = "all the envs" if args.env is None else args.env
+    print(f"Removing {msg}!")
+    if args.env is None:
+        for e in env_specs.keys():
+            _do_teardown(e)
     else:
-        _do_teardown(env)
+        _do_teardown(args.env)
 
 
-cli = click.CommandCollection(sources=[mygroup])
+# top-level parser
+parser = argparse.ArgumentParser()
+main_verbs = parser.add_subparsers(required=True)
+
+# parser for the "test" subcommand
+p_test = main_verbs.add_parser("test")
+p_test.add_argument("env", help="the environment to test")
+p_test.set_defaults(func=test)
+
+# parser for the "spinup" subcommand
+p_spinup = main_verbs.add_parser("spinup")
+p_spinup.add_argument("env", nargs="?", help="the environment to spinup")
+p_spinup.add_argument('--force', action="store_true", help="force or not")
+p_spinup.set_defaults(func=spinup)
+
+# parser for the "teardown" subcommand
+p_teardown = main_verbs.add_parser("teardown")
+p_teardown.add_argument("env", nargs="?", help="the environment to teardown")
+p_teardown.set_defaults(func=teardown)
+
+# parser for the "list" subcommand
+p_list = main_verbs.add_parser("list")
+p_list.set_defaults(func=list_envs)
+
 
 if __name__ == "__main__":
-    cli()
+    parser.parse_args()
+
+    # parse the args and call whatever function was selected
+    args = parser.parse_args()
+    args.func(args)
