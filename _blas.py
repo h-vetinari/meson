@@ -47,6 +47,15 @@ def _is_active(env):
     return content["active_prefix_name"] == env
 
 
+def _has_meson(env):
+    if env is None:
+        raise ValueError("Must provide an environment!")
+    # need subprocess.run to be able to capture output;
+    # `conda env list --json` shows only paths, not names
+    res = subprocess.run([conda_bin, "list"], capture_output=True)
+    return any(re.match(rf"^meson\s+.*pypi", x) for x in res.stdout.decode("utf-8").splitlines())
+
+
 def _do_teardown(env):
     if not _exists(env):
         print(f"Environment {env} does not exist, skipping...")
@@ -68,7 +77,23 @@ def _do_spinup(env, force):
     ret = subprocess.call([conda_bin, "create", "-n", env, *(env_specs[env]), "-y"])
     if ret:
         raise RuntimeError("Error occurred during environment creation!")
-    subprocess.call([f"{base_bindir}/pip", "install", "-e", "."])
+
+
+def _do_mesonize(env, force):
+    if not _is_active(env):
+        raise ValueError(f"Environment {env} must be activated for mesonizing!")
+    has_meson = _has_meson(env)
+    if has_meson and not force:
+        print(f"Environment {env} already has meson installed, and --force not specified, skipping...")
+        return
+    elif has_meson:
+        ret = subprocess.call([f"{base_bindir}/pip", "uninstall", "meson", "-y"])
+        if ret:
+            raise RuntimeError("Error occurred during uninstallation of meson!")
+
+    ret = subprocess.call([f"{base_bindir}/pip", "install", "-e", "."])
+    if ret:
+        raise RuntimeError("Error occurred during installation of meson!")
 
 
 # cannot do this (sanely) from python; use bash
@@ -117,6 +142,16 @@ def teardown(args):
         _do_teardown(args.env)
 
 
+def mesonize(args):
+    msg = "all the envs" if args.env is None else args.env
+    print(f"Mesonizing {msg}!")
+    if args.env is None:
+        for e in env_specs.keys():
+            _do_mesonize(e, args.force)
+    else:
+        _do_mesonize(args.env, args.force)
+
+
 # top-level parser
 parser = argparse.ArgumentParser()
 main_verbs = parser.add_subparsers(required=True)
@@ -136,6 +171,12 @@ p_spinup.set_defaults(func=spinup)
 p_teardown = main_verbs.add_parser("teardown")
 p_teardown.add_argument("env", nargs="?", help="the environment to teardown")
 p_teardown.set_defaults(func=teardown)
+
+# parser for the "mesonize" subcommand
+p_mesonize = main_verbs.add_parser("mesonize")
+p_mesonize.add_argument("env", nargs="?", help="the environment to mesonize")
+p_mesonize.add_argument('--force', action="store_true", help="force or not")
+p_mesonize.set_defaults(func=mesonize)
 
 # parser for the "list" subcommand
 p_list = main_verbs.add_parser("list")

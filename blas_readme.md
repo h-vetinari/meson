@@ -8,7 +8,10 @@ Main interface is through bash, because activation from python is essentially im
 - bash blas.sh activate <env_name>                   # doesn't really do anything, because after script end it's gone again
 - bash blas.sh spinup                                # creates all environments that haven't been created yet
 - bash blas.sh spinup --force                        # force recreates all environments
-- bash blas.sh spinup <env_name>  [--force]          # spin up particular environment
+- bash blas.sh spinup <env_name> [--force]           # spin up particular environment
+- bash blas.sh mesonize <env_name>                   # inject editable meson-install into a given environment
+- bash blas.sh mesonize <env_name> --force           # as above, but uninstall current meson install first
+- bash blas.sh mesonize [--force]                    # as above, but for all environments
 - bash blas.sh teardown                              # tear down all environments
 - bash blas.sh teardown <env_name>                   # tear down particular environment
 - bash blas.sh list                                  # list all specified environments

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# for using patterns in case
+shopt -s extglob
+
 CONDA_BIN=${BLAS_CONDA:-conda}
 PYTHON_BIN=$(which python)
 BLAS_CLICK_WRAPPER="${PYTHON_BIN} _blas.py"
@@ -29,22 +32,23 @@ function activate_or_delegate()
         # environment activation is essentially impossible to do sanely from python
         $CONDA_BIN "$@"
         ;;
-    test)
-        # if we only got one argument (i.e. "test" itself), run test for all environments
+    @(test|mesonize) )
+        verb=$1
+        # if we only got one argument (e.g. "test" itself), do it for all environments
         if [ $# -eq 1 ]; then
             # needs to loop over all environments, and so cannot be in
             # same switch-statement as activation
             envs=$($BLAS_CLICK_WRAPPER list)
             envs_array=($envs)
             for env in "${envs_array[@]}"; do
-                activate_or_delegate test "$env"
+                activate_or_delegate $verb "$env"
             done
         else
             shift  # strip off "test" from arguments
             $CONDA_BIN activate "$1"
             # interface break here... bash blas.sh test <env> vs. python _blas.py test --env=<env>
             # would be nice to get rid of this, but needs deeper click changes
-            $BLAS_CLICK_WRAPPER test "$@"
+            $BLAS_CLICK_WRAPPER $verb "$@"
         fi
         ;;
     *)
