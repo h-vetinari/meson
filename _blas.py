@@ -33,7 +33,7 @@ def _exists(env):
     # need subprocess.run to be able to capture output;
     # `conda env list --json` shows only paths, not names
     res = subprocess.run([conda_bin, "env", "list"], capture_output=True)
-    # don"t match on partial names; from beginning (^) to following space (\s+)
+    # don't match on partial names; from beginning (^) to following space (\s+)
     return any(re.match(rf"^{env}\s+", x) for x in res.stdout.decode("utf-8").splitlines())
 
 
@@ -58,11 +58,12 @@ def _do_spinup(env, force):
     if env not in env_specs.keys():
         raise RuntimeError(f"Unknown environment specified: {env}!\n"
                            f"Known environments: {', '.join(env_specs.keys())}")
-    if _exists(env) and not force:
+    exists = _exists(env)
+    if exists and not force:
         print(f"Environment {env} exists already, and --force not specified, skipping...")
         return
 
-    if _exists(env):
+    if exists:
         _do_teardown(env)
     ret = subprocess.call([conda_bin, "create", "-n", env, *(env_specs[env]), "-y"])
     if ret:
