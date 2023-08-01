@@ -13,13 +13,13 @@ conda_bin = os.environ.get("BLAS_CONDA", "conda")
 base_bindir = os.environ.get("BASE_ENV_BINDIR", ".")
 
 env_specs = {
-    "linux_openblas_pthreads_lp64": ["libblas=*=*openblas", "openblas=*=pthreads*"],
-    "linux_openblas_pthreads_ilp64": ["openblas-ilp64=*=pthreads*"],
-    "linux_openblas_openmp_lp64": ["libblas=*=openblas", "openblas=*=openmp*"],
-    "linux_openblas_openmp_ilp64": ["openblas-ilp64=*=openmp*"],
-    "linux_netlib_pthreads": ["libblas=*=*netlib", "blas-devel=3.9.0=5*"],
-    "linux_blis_pthreads": ["libblas=*=*blis"],
-    "linux_mkl_openmp": ["libblas=*=*mkl"],
+    "openblas_pthreads_lp64": ["libblas=*=*openblas", "openblas=*=pthreads*"],
+    "openblas_pthreads_ilp64": ["openblas-ilp64=*=pthreads*"],
+    "openblas_openmp_lp64": ["libblas=*=openblas", "openblas=*=openmp*"],
+    "openblas_openmp_ilp64": ["openblas-ilp64=*=openmp*"],
+    "netlib_pthreads": ["libblas=*=*netlib", "blas-devel=3.9.0=5*"],
+    "blis_pthreads": ["libblas=*=*blis"],
+    "mkl_openmp": ["libblas=*=*mkl"],
 }
 # add base-specs
 base_spec = ["pip", "python=3.10", "ninja"]
