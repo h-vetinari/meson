@@ -21,6 +21,9 @@ env_specs = {
     "linux_blis_pthreads": ["libblas=*=*blis"],
     "linux_mkl_openmp": ["libblas=*=*mkl"],
 }
+# add base-specs
+base_spec = ["pip", "python=3.10", "ninja"]
+env_specs = {k: v + base_spec for k, v in env_specs.items()}
 
 
 # not exposed in CLI
