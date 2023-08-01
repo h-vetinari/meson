@@ -104,6 +104,12 @@ def teardown(args):
     msg = "all the envs" if args.env is None else args.env
     print(f"Removing {msg}!")
     if args.env is None:
+        question = "Are you sure you want to delete all environments? y/n\n"
+        while True:
+            if answer := input(question).lower() in ["y", "n"]:
+                break
+        if answer == "n":
+            return
         for e in env_specs.keys():
             _do_teardown(e)
     else:
