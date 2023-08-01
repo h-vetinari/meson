@@ -8,16 +8,16 @@ BLAS_CLICK_WRAPPER="${PYTHON_BIN} _blas.py"
 export BASE_ENV_BINDIR=$(dirname $PYTHON_BIN)
 
 # we need to ensure our current process (in which this script is running) can
-# find the activation mechanisms usually these are inserted into ~/.bashrc,
+# find the activation mechanisms; usually these are inserted into ~/.bashrc,
 # but in this shell, this isn't loaded.
 # Extract the part that `conda init` has inserted (which conveniently has
-# markers around it); ensure sed-replacement can deal with multiline, see
+# markers around it). Ensure sed-replacement can deal with multiline, see
 # https://unix.stackexchange.com/a/152389
 if [ ! -f .localinitrc ]; then
     extract=$(cat ~/.bashrc | tr '\n' '\f' | sed -E 's/.*\# >>> conda initialize >>>(.*)\# <<< conda initialize <<<.*/\1/g' | tr '\f' '\n')
     echo "$extract" > .localinitrc
 fi
-# run extracted bits it in this process
+# run extracted bits in this process
 source .localinitrc
 
 
