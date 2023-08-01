@@ -30,11 +30,22 @@ function activate_or_delegate()
         $CONDA_BIN "$@"
         ;;
     test)
-        shift  # strip off "test" from arguments
-        $CONDA_BIN activate "$1"
-        # interface break here... bash blas.sh test <env> vs. python _blas.py test --env=<env>
-        # would be nice to get rid of this, but needs deeper click changes
-        $BLAS_CLICK_WRAPPER test "$@"
+        # if we only got one argument (i.e. "test" itself), run test for all environments
+        if [ $# -eq 1 ]; then
+            # needs to loop over all environments, and so cannot be in
+            # same switch-statement as activation
+            envs=$($BLAS_CLICK_WRAPPER list)
+            envs_array=($envs)
+            for env in "${envs_array[@]}"; do
+                activate_or_delegate test "$env"
+            done
+        else
+            shift  # strip off "test" from arguments
+            $CONDA_BIN activate "$1"
+            # interface break here... bash blas.sh test <env> vs. python _blas.py test --env=<env>
+            # would be nice to get rid of this, but needs deeper click changes
+            $BLAS_CLICK_WRAPPER test "$@"
+        fi
         ;;
     *)
         # delegate to python CLI
@@ -43,19 +54,6 @@ function activate_or_delegate()
     esac
 }
 
-
-case "$1" in
-test_all)
-    # needs to loop over all environments, and so cannot be in
-    # same switch-statement as activation
-    envs=$($BLAS_CLICK_WRAPPER list)
-    envs_array=($envs)
-    for env in "${envs_array[@]}"; do
-        activate_or_delegate test "$env"
-    done
-    ;;
-*)
-    # everything else
-    activate_or_delegate "$@"
-    ;;
-esac
+echo "Calling blas entry point with: $@"
+# call the function
+activate_or_delegate "$@"

@@ -3,7 +3,7 @@ BLAS Testing
 
 Main interface is through bash, because activation from python is essentially impossible
 
-- bash blas.sh test_all                              # run the test for all environments
+- bash blas.sh test                                  # run the test for all environments
 - bash blas.sh test <env_name>                       # run the test for a specific environment
 - bash blas.sh activate <env_name>                   # doesn't really do anything, because after script end it's gone again
 - bash blas.sh spinup                                # creates all environments that haven't been created yet
