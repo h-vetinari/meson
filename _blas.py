@@ -15,7 +15,7 @@ base_bindir = os.environ.get("BASE_ENV_BINDIR", ".")
 env_specs = {
     "openblas_pthreads_lp64": ["libblas=*=*openblas", "openblas=*=pthreads*"],
     "openblas_pthreads_ilp64": ["openblas-ilp64=*=pthreads*"],
-    "openblas_openmp_lp64": ["libblas=*=openblas", "openblas=*=openmp*"],
+    "openblas_openmp_lp64": ["libblas=*=*openblas", "openblas=*=openmp*"],
     "openblas_openmp_ilp64": ["openblas-ilp64=*=openmp*"],
     "netlib_pthreads": ["libblas=*=*netlib", "blas-devel=3.9.0=5*"],
     "blis_pthreads": ["libblas=*=*blis"],
