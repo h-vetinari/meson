@@ -13,13 +13,13 @@ conda_bin = os.environ.get("BLAS_CONDA", "conda")
 base_bindir = os.environ.get("BASE_ENV_BINDIR", ".")
 
 env_specs = {
-    "linux_openblas_pthreads_lp64": "libblas=*=*openblas openblas=*=pthreads*",
-    "linux_openblas_pthreads_ilp64": "openblas-ilp64=*=pthreads*",
-    "linux_openblas_openmp_lp64": "libblas=*=openblas openblas=*=openmp*",
-    "linux_openblas_openmp_ilp64": "openblas-ilp64=*=openmp*",
-    "linux_netlib_pthreads": "libblas=*=*netlib blas-devel=3.9.0=5*",
-    "linux_blis_pthreads": "libblas=*=*blis",
-    "linux_mkl_openmp": "libblas=*=*mkl",
+    "linux_openblas_pthreads_lp64": ["libblas=*=*openblas", "openblas=*=pthreads*"],
+    "linux_openblas_pthreads_ilp64": ["openblas-ilp64=*=pthreads*"],
+    "linux_openblas_openmp_lp64": ["libblas=*=openblas", "openblas=*=openmp*"],
+    "linux_openblas_openmp_ilp64": ["openblas-ilp64=*=openmp*"],
+    "linux_netlib_pthreads": ["libblas=*=*netlib", "blas-devel=3.9.0=5*"],
+    "linux_blis_pthreads": ["libblas=*=*blis"],
+    "linux_mkl_openmp": ["libblas=*=*mkl"],
 }
 
 
@@ -61,7 +61,7 @@ def _do_spinup(env, force):
 
     if _exists(env):
         _do_teardown(env)
-    ret = subprocess.call([conda_bin, "create", "-n", env, env_specs[env], "-y"])
+    ret = subprocess.call([conda_bin, "create", "-n", env, *(env_specs[env]), "-y"])
     if ret:
         raise RuntimeError("Error occurred during environment creation!")
     subprocess.call([f"{base_bindir}/pip", "install", "-e", "."])
