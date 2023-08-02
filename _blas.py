@@ -43,7 +43,6 @@ def _is_active(env):
     # need subprocess.run to be able to capture output
     res = subprocess.run([conda_bin, "info", "--json"], capture_output=True)
     content = json.loads(res.stdout.decode("utf-8"))
-    # don"t match on partial names; from beginning (^) to following space (\s+)
     return content["active_prefix_name"] == env
 
 
