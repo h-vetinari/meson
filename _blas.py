@@ -191,8 +191,6 @@ p_list.set_defaults(func=list_envs)
 
 
 if __name__ == "__main__":
-    parser.parse_args()
-
     # parse the args and call whatever function was selected
     args = parser.parse_args()
     args.func(args)
