@@ -9,8 +9,6 @@ import subprocess
 
 # mamba not tested yet
 conda_bin = os.environ.get("BLAS_CONDA", "conda")
-# where we expect to find pip (generally not installed in the blas envs)
-base_bindir = os.environ.get("BASE_ENV_BINDIR", ".")
 
 env_specs = {
     "openblas_pthreads_lp64": ["libblas=*=*openblas", "openblas=*=pthreads*"],
@@ -37,13 +35,21 @@ def _exists(env):
     return any(re.match(rf"^{env}\s+", x) for x in res.stdout.decode("utf-8").splitlines())
 
 
-def _is_active(env):
-    if env is None:
-        raise ValueError("Must provide an environment!")
+def _get_conda_info():
+    """
+    Get conda-info in json form and return it as a dict.
+    """
     # need subprocess.run to be able to capture output
     res = subprocess.run([conda_bin, "info", "--json"], capture_output=True)
     content = json.loads(res.stdout.decode("utf-8"))
-    return content["active_prefix_name"] == env
+    return content
+
+
+def _is_active(env):
+    if env is None:
+        raise ValueError("Must provide an environment!")
+    info = _get_conda_info()
+    return info["active_prefix_name"] == env
 
 
 def _has_meson(env):
@@ -82,15 +88,16 @@ def _do_mesonize(env, force):
     if not _is_active(env):
         raise ValueError(f"Environment {env} must be activated for mesonizing!")
     has_meson = _has_meson(env)
+    pip_in_env = f"{_get_conda_info()['active_prefix']}/bin/pip"
     if has_meson and not force:
         print(f"Environment {env} already has meson installed, and --force not specified, skipping...")
         return
     elif has_meson:
-        ret = subprocess.call([f"{base_bindir}/pip", "uninstall", "meson", "-y"])
+        ret = subprocess.call([pip_in_env, "uninstall", "meson", "-y"])
         if ret:
             raise RuntimeError("Error occurred during uninstallation of meson!")
 
-    ret = subprocess.call([f"{base_bindir}/pip", "install", "-e", "."])
+    ret = subprocess.call([pip_in_env, "install", "-e", "."])
     if ret:
         raise RuntimeError("Error occurred during installation of meson!")
 
@@ -107,7 +114,8 @@ def test(args):
         raise ValueError(f"Environment {args.env} must be activated for testing!")
     print(f"Running tests in {args.env}")
     # point this to respective blas test
-    subprocess.call([f"{base_bindir}/python", "run_unittests.py"])
+    python_in_env = f"{_get_conda_info()['active_prefix']}/bin/python"
+    subprocess.call([python_in_env, "run_unittests.py"])
 
 
 def list_envs(args):

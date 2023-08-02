@@ -7,8 +7,6 @@ shopt -s extglob
 CONDA_BIN=${BLAS_CONDA:-conda}
 PYTHON_BIN=$(which python)
 BLAS_CLICK_WRAPPER="${PYTHON_BIN} _blas.py"
-# need to pass this to python script
-export BASE_ENV_BINDIR=$(dirname $PYTHON_BIN)
 
 # we need to ensure our current process (in which this script is running) can
 # find the activation mechanisms; usually these are inserted into ~/.bashrc,
